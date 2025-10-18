@@ -10,7 +10,11 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, mongodb::connect_mongodb])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            mongodb::connect_mongodb,
+            mongodb::list_databases
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
