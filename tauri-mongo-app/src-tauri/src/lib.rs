@@ -1,4 +1,4 @@
-use mongodb::Client;
+mod mongodb;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -6,21 +6,11 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[tauri::command]
-async fn connect_mongodb() -> Result<String, String> {
-    let uri = "mongodb://localhost:27017";
-
-    match Client::with_uri_str(uri).await {
-        Ok(client) => Ok(format!("Connected to MongoDB: {:?}", client.list_databases().await.unwrap())),
-        Err(e) => Err(e.to_string()),
-    }
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, connect_mongodb])
+        .invoke_handler(tauri::generate_handler![greet, mongodb::connect_mongodb])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
