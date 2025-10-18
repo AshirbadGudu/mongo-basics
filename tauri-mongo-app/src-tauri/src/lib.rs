@@ -1,3 +1,5 @@
+use mongodb::Client;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -6,7 +8,12 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 async fn connect_mongodb() -> Result<String, String> {
-    Ok("Connected to MongoDB".to_string())
+    let uri = "mongodb://localhost:27017";
+
+    match Client::with_uri_str(uri).await {
+        Ok(client) => Ok(format!("Connected to MongoDB: {:?}", client.list_databases().await.unwrap())),
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
