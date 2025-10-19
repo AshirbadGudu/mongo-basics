@@ -20,10 +20,16 @@ pub async fn connect_mongodb() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn list_databases() -> String {
+pub async fn list_databases() -> Result<serde_json::Value, String> {
     dotenv().ok();
     let uri = env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".to_string());
-    let client = Client::with_uri_str(uri).await.unwrap();
-    let databases = client.list_databases().await.unwrap();
-    format!("Databases: {:?}", databases)
+    match Client::with_uri_str(uri).await {
+        Ok(client) => {
+            match client.list_databases().await {
+                Ok(databases) => Ok(serde_json::to_value(databases).unwrap()),
+                Err(e) => Err(format!("Failed to list databases: {}", e))
+            }
+        }, 
+        Err(e) => Err(format!("MongoDB connection failed: {}", e))
+    }
 }
